@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complaint Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Complaint Workflow</p>
+          <h1>Customer complaints in, AI analysis out, dashboard ready.</h1>
+          <p class="hero-copy">
+            This project receives complaints, classifies them into financial-service
+            issue types, stores structured AI feedback in MySQL, and shows the
+            full complaint picture on one screen.
+          </p>
+        </div>
+        <div class="flow-card">
+          <h2>Pipeline</h2>
+          <ol>
+            <li>User submits complaint</li>
+            <li>Backend receives message</li>
+            <li>AI analyzes complaint</li>
+            <li>AI generates summary, categories, sentiment, and reply</li>
+            <li>Data stored in MySQL</li>
+            <li>Dashboard shows complaints</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card">
+          <p>Total Complaints</p>
+          <strong><%= dashboardMetrics.total %></strong>
+        </article>
+        <article class="stat-card">
+          <p>Critical Cases</p>
+          <strong><%= dashboardMetrics.criticalCount %></strong>
+        </article>
+        <article class="stat-card">
+          <p>Very Angry Customers</p>
+          <strong><%= dashboardMetrics.veryAngryCount %></strong>
+        </article>
+        <article class="stat-card">
+          <p>Payment Issues</p>
+          <strong><%= dashboardMetrics.paymentIssueCount %></strong>
+        </article>
+      </section>
+
+      <section class="analytics-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <h2>Sentiment Chart</h2>
+            <span class="count">live distribution</span>
+          </div>
+          <div class="chart-list">
+            <% const sentimentMax = dashboardMetrics.sentimentChart[0]?.count || 1; %>
+            <% dashboardMetrics.sentimentChart.forEach((item) => { %>
+              <div class="chart-row">
+                <div class="chart-meta">
+                  <span><%= item.label %></span>
+                  <strong><%= item.count %></strong>
+                </div>
+                <div class="chart-track">
+                  <div
+                    class="chart-fill chart-fill-<%= item.key %>"
+                    style="width: <%= (item.count / sentimentMax) * 100 %>%"
+                  ></div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <h2>Complaint Stats</h2>
+            <span class="count">severity mix</span>
+          </div>
+          <div class="chart-list">
+            <% const severityMax = dashboardMetrics.severityChart[0]?.count || 1; %>
+            <% dashboardMetrics.severityChart.forEach((item) => { %>
+              <div class="chart-row">
+                <div class="chart-meta">
+                  <span><%= item.label %></span>
+                  <strong><%= item.count %></strong>
+                </div>
+                <div class="chart-track">
+                  <div
+                    class="chart-fill chart-fill-<%= item.key %>"
+                    style="width: <%= (item.count / severityMax) * 100 %>%"
+                  ></div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </article>
+      </section>
+
+      <section class="analytics-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <h2>Categories</h2>
+            <span class="count">complaint types</span>
+          </div>
+          <div class="token-grid">
+            <% dashboardMetrics.complaintTypeChart.forEach((item) => { %>
+              <div class="token-card">
+                <span><%= item.label %></span>
+                <strong><%= item.count %></strong>
+              </div>
+            <% }); %>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <h2>Product Types</h2>
+            <span class="count">banking products</span>
+          </div>
+          <div class="token-grid">
+            <% dashboardMetrics.productTypeChart.forEach((item) => { %>
+              <div class="token-card">
+                <span><%= item.label %></span>
+                <strong><%= item.count %></strong>
+              </div>
+            <% }); %>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid">
+        <section class="panel">
+          <h2>Submit Complaint</h2>
+          <form id="complaint-form" class="form">
+            <label>
+              Customer Name
+              <input type="text" name="customerName" placeholder="Aarav Patel" required />
+            </label>
+
+            <label>
+              Email
+              <input type="email" name="email" placeholder="aarav@example.com" />
+            </label>
+
+            <label>
+              Complaint
+              <textarea
+                name="message"
+                rows="6"
+                placeholder="Describe the complaint here..."
+                required
+              ></textarea>
+            </label>
+
+            <button type="submit">Analyze and Save</button>
+            <p id="form-status" class="form-status"></p>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Complaints</h2>
+            <span class="count"><%= complaints.length %> records</span>
+          </div>
+
+          <% if (errorMessage) { %>
+            <div class="error-box">
+              <strong>Database issue:</strong> <%= errorMessage %>
+            </div>
+          <% } %>
+
+          <div id="complaint-list" class="complaint-list">
+            <% if (!complaints.length) { %>
+              <article class="complaint-card empty-state">
+                <p>No complaints stored yet.</p>
+              </article>
+            <% } %>
+
+            <% complaints.forEach((complaint) => { %>
+              <article class="complaint-card">
+                <div class="complaint-top">
+                  <div>
+                    <h3><%= complaint.customerName %></h3>
+                    <p><%= complaint.email || "No email provided" %></p>
+                  </div>
+                  <div class="pill-group">
+                    <span class="status-pill"><%= complaint.status %></span>
+                    <span class="meta-pill meta-pill-type">
+                      <%= complaint.complaintType.split("_").join(" ") %>
+                    </span>
+                    <span class="meta-pill meta-pill-product">
+                      <%= complaint.productType.split("_").join(" ") %>
+                    </span>
+                    <span class="meta-pill meta-pill-<%= complaint.sentiment %>">
+                      sentiment: <%= complaint.sentiment %>
+                    </span>
+                    <span class="meta-pill meta-pill-<%= complaint.severity %>">
+                      severity: <%= complaint.severity %>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="complaint-block">
+                  <h4>Original Complaint</h4>
+                  <p><%= complaint.message %></p>
+                </div>
+
+                <div class="complaint-block">
+                  <h4>AI Summary</h4>
+                  <p><%= complaint.summary %></p>
+                </div>
+
+                <div class="complaint-meta-grid">
+                  <div class="meta-card">
+                    <h4>Complaint Type</h4>
+                    <p><%= complaint.complaintType.split("_").join(" ") %></p>
+                  </div>
+                  <div class="meta-card">
+                    <h4>Product Type</h4>
+                    <p><%= complaint.productType.split("_").join(" ") %></p>
+                  </div>
+                  <div class="meta-card">
+                    <h4>Severity Level</h4>
+                    <p><%= complaint.severity.split("_").join(" ") %></p>
+                  </div>
+                  <div class="meta-card">
+                    <h4>Sentiment</h4>
+                    <p><%= complaint.sentiment.split("_").join(" ") %></p>
+                  </div>
+                </div>
+
+                <div class="complaint-block">
+                  <h4>AI Reply</h4>
+                  <p><%= complaint.reply %></p>
+                </div>
+              </article>
+            <% }); %>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

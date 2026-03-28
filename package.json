@@ -1,0 +1,28 @@
+{
+  "name": "complaint-dashboard",
+  "version": "1.0.0",
+  "description": "Complaint intake workflow with OpenAI analysis, MySQL persistence, and a dashboard.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "complaints",
+    "openai",
+    "mysql",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "mysql2": "^3.14.0",
+    "openai": "^4.104.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
